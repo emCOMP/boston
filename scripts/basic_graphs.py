@@ -119,16 +119,20 @@ def _text_by_time(db_name,rumor,fname,start_time,end_time,code):
 
     raw_data = db.m_connections[db_name].find({
         "created_ts":{
-            "$gte":dateStart,
-            "$lte":dateEnd
+            "$gte":start_time,
+            "$lte":end_time
         },
         "codes.rumor":rumor,
         "codes.code":code
     })
 
     for x in raw_data:
-        result = '"%s","%s\n"' % (x['created_at'],x['text'])
-        f.write(result)
+        result = '%s,"%s\n"' % (x['created_at'],x['text'])
+        try:
+            f.write(result)
+        except:
+            result = '%s,"%s\n"' % (x['created_at'],'unicode error')
+            f.write(result)
 
 def text_by_time():
     print 'enter a valid file name:'
@@ -140,9 +144,9 @@ def text_by_time():
     print 'enter a day (15 through 22):'
     day = int(raw_input('>> '))
     print 'enter an hour (0 through 23):'
-    minute = int(raw_input('>> '))
+    hour = int(raw_input('>> '))
     print 'enter a minute (0 through 58):'
-    second = raw_input('>> ')
+    minute = int(raw_input('>> '))
     dateStart = datetime(2013,04,day,hour,minute)
     dateEnd = datetime(2013,04,day,hour,minute,59)
 
