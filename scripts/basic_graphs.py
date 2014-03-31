@@ -34,8 +34,8 @@ def _rumor_over_time(db_name,rumor,gran,fname):
                 })
                 result = ''
                 for x in raw_data:
-                    count.update([x['codes'][0]['code']])
-
+                    count.update([x['codes'][0]['code']]
+)
                     if gran:
                         misinfo = count['misinfo']
                         speculation = count['speculation']
@@ -60,6 +60,53 @@ def _rumor_over_time(db_name,rumor,gran,fname):
                                                       other)
 
                 f.write(result)
+
+def top_hashtags(db_name):
+    db = dbConnection()
+    db.create_mongo_connections(mongo_options=[db_name])
+
+    title = "iconf_top_hashtags.csv"
+    fpath = utils.write_to_data(path=title)
+    f = open(fpath, 'w')
+    f.write('name,count\n')
+
+    data = db.m_connections[db_name].find({
+        'counts.hashtags':{
+            '$gt':0
+        }
+    })
+
+    count = Counter()
+
+    for x in data:
+        count.update(x['hashtags'])
+
+    for x in count.most_common(100):
+        print x
+
+def top_urls(db_name):
+    db = dbConnection()
+    db.create_mongo_connections(mongo_options=[db_name])
+
+    title = "iconf_top_hashtags.csv"
+    fpath = utils.write_to_data(path=title)
+    f = open(fpath, 'w')
+    f.write('name,count\n')
+
+    data = db.m_connections[db_name].find({
+        'counts.urls':{
+            '$gt':0
+        }
+    })
+
+    count = Counter()
+
+    for x in data:
+        for y in x['entities']['urls']:
+            count.update([y['expanded_url']])
+
+    for x in count.most_common(100):
+        print x
 
 def _text_by_time(db_name,rumor,fname,start_time,end_time,code):
     db = dbConnection()
@@ -114,6 +161,10 @@ def rumor_over_time():
 
     for x in rumors:
         _rumor_over_time(db_name='new_boston',rumor=x,gran=True,fname=user_in)
+
+def main():
+    rumors = ['girl running','sunil','seals/craft','cell phone','proposal','jfk']
+    top_urls(db_name='iconference')
 
 if __name__ == "__main__":
     rumor_over_time()
