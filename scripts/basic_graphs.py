@@ -3,6 +3,101 @@ from collections import Counter
 from datetime import datetime
 import utils
 
+def top_hashtags(db_name):
+    db = dbConnection()
+    db.create_mongo_connections(mongo_options=[db_name])
+
+    title = "iconf_top_hashtags.csv"
+    fpath = utils.write_to_data(path=title)
+    f = open(fpath, 'w')
+    f.write('name,count\n')
+
+    data = db.m_connections[db_name].find({
+        'counts.hashtags':{
+            '$gt':0
+        }
+    })
+
+    count = Counter()
+
+    for x in data:
+        count.update(x['hashtags'])
+
+    for x in count.most_common(100):
+        print x
+
+def top_urls(db_name):
+    db = dbConnection()
+    db.create_mongo_connections(mongo_options=[db_name])
+
+    title = "iconf_top_hashtags.csv"
+    fpath = utils.write_to_data(path=title)
+    f = open(fpath, 'w')
+    f.write('name,count\n')
+
+    data = db.m_connections[db_name].find({
+        'counts.urls':{
+            '$gt':0
+        }
+    })
+
+    count = Counter()
+
+    for x in data:
+        for y in x['entities']['urls']:
+            count.update([y['expanded_url']])
+
+    for x in count.most_common(100):
+        print x
+
+def text_by_time():
+    print 'enter a valid file name:'
+    fname_in = raw_input('>> ')
+    print 'enter a rumor: (girl running, sunil, craft/seals, cell phone, proposal, jfk)'
+    rumor_in = raw_input('>> ')
+    print 'enter a code (misinfo, correction, speculation, hedge, question, other/unclear/neutral):'
+    code_in = raw_input('>> ')
+
+    print 'enter a start day (15 through 22):'
+    day = int(raw_input('>> '))
+    print 'enter a start hour (0 through 23):'
+    hour = int(raw_input('>> '))
+    print 'enter a start minute (0 through 59):'
+    minute = int(raw_input('>> '))
+    dateStart = datetime(2013,04,day,hour,minute)
+
+    print 'enter an end day (15 through 22):'
+    day = int(raw_input('>> '))
+    print 'enter an end hour (0 through 23):'
+    hour = int(raw_input('>> '))
+    print 'enter an end minute (0 through 59):'
+    minute = int(raw_input('>> '))
+    dateEnd = datetime(2013,04,day,hour,minute,59)
+
+    _text_by_time(db_name='new_boston',
+                  rumor=rumor_in,
+                  fname=fname_in,
+                  start_time=dateStart,
+                  end_time=dateEnd,
+                  code=code_in)
+
+def rumor_over_time():
+    rumors = ['girl running','sunil','seals/craft','cell phone','proposal','jfk']
+
+    print 'enter a valid file name:'
+    user_in = raw_input('>> ')
+
+    for x in rumors:
+        _rumor_over_time(db_name='new_boston',rumor=x,gran=True,fname=user_in)
+
+# retrieves relevant data for all documents with GPS data
+def getAllGPS():
+	rumors = ['girl running','sunil','seals/craft','cell phone','proposal','jfk'] #to make separate csv's (not yet implemented)
+	print 'enter a valid file name:'
+	user_in = raw_input('>> ')
+
+	_getAllGPS(db_name='new_boston', fname=user_in)
+
 def _rumor_over_time(db_name,rumor,gran,fname):
     db = dbConnection()
     db.create_mongo_connections(mongo_options=[db_name])
@@ -61,53 +156,6 @@ def _rumor_over_time(db_name,rumor,gran,fname):
 
                 f.write(result)
 
-def top_hashtags(db_name):
-    db = dbConnection()
-    db.create_mongo_connections(mongo_options=[db_name])
-
-    title = "iconf_top_hashtags.csv"
-    fpath = utils.write_to_data(path=title)
-    f = open(fpath, 'w')
-    f.write('name,count\n')
-
-    data = db.m_connections[db_name].find({
-        'counts.hashtags':{
-            '$gt':0
-        }
-    })
-
-    count = Counter()
-
-    for x in data:
-        count.update(x['hashtags'])
-
-    for x in count.most_common(100):
-        print x
-
-def top_urls(db_name):
-    db = dbConnection()
-    db.create_mongo_connections(mongo_options=[db_name])
-
-    title = "iconf_top_hashtags.csv"
-    fpath = utils.write_to_data(path=title)
-    f = open(fpath, 'w')
-    f.write('name,count\n')
-
-    data = db.m_connections[db_name].find({
-        'counts.urls':{
-            '$gt':0
-        }
-    })
-
-    count = Counter()
-
-    for x in data:
-        for y in x['entities']['urls']:
-            count.update([y['expanded_url']])
-
-    for x in count.most_common(100):
-        print x
-
 def _text_by_time(db_name,rumor,fname,start_time,end_time,code):
     db = dbConnection()
     db.create_mongo_connections(mongo_options=[db_name])
@@ -135,47 +183,6 @@ def _text_by_time(db_name,rumor,fname,start_time,end_time,code):
             f.write(result)
         print i,result
 
-def text_by_time():
-    print 'enter a valid file name:'
-    fname_in = raw_input('>> ')
-    print 'enter a rumor: (girl running, sunil, craft/seals, cell phone, proposal, jfk)'
-    rumor_in = raw_input('>> ')
-    print 'enter a code (misinfo, correction, speculation, hedge, question, other/unclear/neutral):'
-    code_in = raw_input('>> ')
-
-    print 'enter a start day (15 through 22):'
-    day = int(raw_input('>> '))
-    print 'enter a start hour (0 through 23):'
-    hour = int(raw_input('>> '))
-    print 'enter a start minute (0 through 59):'
-    minute = int(raw_input('>> '))
-    dateStart = datetime(2013,04,day,hour,minute)
-
-    print 'enter an end day (15 through 22):'
-    day = int(raw_input('>> '))
-    print 'enter an end hour (0 through 23):'
-    hour = int(raw_input('>> '))
-    print 'enter an end minute (0 through 59):'
-    minute = int(raw_input('>> '))
-    dateEnd = datetime(2013,04,day,hour,minute,59)
-
-    _text_by_time(db_name='new_boston',
-                  rumor=rumor_in,
-                  fname=fname_in,
-                  start_time=dateStart,
-                  end_time=dateEnd,
-                  code=code_in)
-
-def rumor_over_time():
-    rumors = ['girl running','sunil','seals/craft','cell phone','proposal','jfk']
-
-    print 'enter a valid file name:'
-    user_in = raw_input('>> ')
-
-    for x in rumors:
-        _rumor_over_time(db_name='new_boston',rumor=x,gran=True,fname=user_in)
-
-# retrieves relevant data for all documents with GPS data
 def _getAllGPS(db_name, fname, rumor="all"):
 	db = dbConnection()
 	db.create_mongo_connections(mongo_options=[db_name])
@@ -213,13 +220,6 @@ def _getAllGPS(db_name, fname, rumor="all"):
 			f.write(result)
 		except:
 			f.write('decode error!\n')
-
-def getAllGPS():
-	rumors = ['girl running','sunil','seals/craft','cell phone','proposal','jfk'] #to make separate csv's (not yet implemented)
-	print 'enter a valid file name:'
-	user_in = raw_input('>> ')
-
-	_getAllGPS(db_name='new_boston', fname=user_in)
 
 def main():
     getAllGPS()
