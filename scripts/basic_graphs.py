@@ -166,9 +166,54 @@ def rumor_over_time():
     for x in rumors:
         _rumor_over_time(db_name='new_boston',rumor=x,gran=True,fname=user_in)
 
+# retrieves relevant data for all documents with GPS data
+def _getAllGPS(db_name, fname, rumor="all"):
+	db = dbConnection()
+	db.create_mongo_connections(mongo_options=[db_name])
+	
+	title = "%s_%s.csv" % (rumor.replace('/','_'), fname)
+	fpath = utils.write_to_data(path=title)
+	f = open(fpath, 'w')
+	
+	raw_data = db.m_connections[db_name].find({'place.coordinates.type':'Point'})
+	f.write('title,url,text,author,time,lat,lon\n')
+	for (i,data) in enumerate(raw_data):
+		try:
+			title = data['entities']['urls'][0]['title']
+		except:
+			title = ""
+		try:
+			url = data['entities']['urls'][0]['long-url']
+		except:
+			url = ""
+		text = data['text']
+		author = data['user']['id']
+		time = data['created_at']
+		try:
+			lat = data['place']['coordinates']['coordinates'][0]
+		except:
+			lat = ""
+		try:
+			lon = data['place']['coordinates']['coordinates'][1]
+		except:
+			lon = ""
+		# print i ...for testing
+		result = '"%s","%s","%s","%s","%s","%s","%s"\n' % (title,url,text,author,time, lat, lon)
+		# print result ... for testing
+		try:
+			f.write(result)
+		except:
+			f.write('decode error!\n')
+
+def getAllGPS():
+	rumors = ['girl running','sunil','seals/craft','cell phone','proposal','jfk'] #to make separate csv's (not yet implemented)
+	print 'enter a valid file name:'
+	user_in = raw_input('>> ')
+	
+	_getAllGPS(db_name='new_boston', fname=user_in)
+
 def main():
-    rumors = ['girl running','sunil','seals/craft','cell phone','proposal','jfk']
-    top_urls(db_name='iconference')
+    getAllGPS()
 
 if __name__ == "__main__":
-    rumor_over_time()
+    main()
