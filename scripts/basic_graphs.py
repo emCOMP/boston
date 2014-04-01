@@ -126,28 +126,37 @@ def _text_by_time(db_name,rumor,fname,start_time,end_time,code):
         "codes.code":code
     })
 
-    for x in raw_data:
+    for i,x in enumerate(raw_data):
         result = '%s,"%s\n"' % (x['created_at'],x['text'])
         try:
             f.write(result)
         except:
             result = '%s,"%s\n"' % (x['created_at'],'unicode error')
             f.write(result)
+        print i,result
 
 def text_by_time():
     print 'enter a valid file name:'
     fname_in = raw_input('>> ')
-    print 'enter a rumor:'
+    print 'enter a rumor: (girl running, sunil, craft/seals, cell phone, proposal, jfk)'
     rumor_in = raw_input('>> ')
-    print 'enter a code:'
+    print 'enter a code (misinfo, correction, speculation, hedge, question, other/unclear/neutral):'
     code_in = raw_input('>> ')
-    print 'enter a day (15 through 22):'
+
+    print 'enter a start day (15 through 22):'
     day = int(raw_input('>> '))
-    print 'enter an hour (0 through 23):'
+    print 'enter a start hour (0 through 23):'
     hour = int(raw_input('>> '))
-    print 'enter a minute (0 through 58):'
+    print 'enter a start minute (0 through 59):'
     minute = int(raw_input('>> '))
     dateStart = datetime(2013,04,day,hour,minute)
+
+    print 'enter an end day (15 through 22):'
+    day = int(raw_input('>> '))
+    print 'enter an end hour (0 through 23):'
+    hour = int(raw_input('>> '))
+    print 'enter an end minute (0 through 59):'
+    minute = int(raw_input('>> '))
     dateEnd = datetime(2013,04,day,hour,minute,59)
 
     _text_by_time(db_name='new_boston',
@@ -170,11 +179,11 @@ def rumor_over_time():
 def _getAllGPS(db_name, fname, rumor="all"):
 	db = dbConnection()
 	db.create_mongo_connections(mongo_options=[db_name])
-	
+
 	title = "%s_%s.csv" % (rumor.replace('/','_'), fname)
 	fpath = utils.write_to_data(path=title)
 	f = open(fpath, 'w')
-	
+
 	raw_data = db.m_connections[db_name].find({'place.coordinates.type':'Point'})
 	f.write('title,url,text,author,time,lat,lon\n')
 	for (i,data) in enumerate(raw_data):
@@ -209,7 +218,7 @@ def getAllGPS():
 	rumors = ['girl running','sunil','seals/craft','cell phone','proposal','jfk'] #to make separate csv's (not yet implemented)
 	print 'enter a valid file name:'
 	user_in = raw_input('>> ')
-	
+
 	_getAllGPS(db_name='new_boston', fname=user_in)
 
 def main():
