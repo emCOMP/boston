@@ -70,6 +70,22 @@ def code_update(mongodb,sqldb,table,rumor):
                                            'codes.rumor':rumor},
                                           {'$set':{'codes.$.code':value,}})
 
+def total_intersection(dbs=[]):
+    db = dbConnection()
+    db.create_mongo_connections(mongo_options=[dbs])
+
+    raw_data = db.m_connections[0].find()
+    count = collections.Counter()
+
+    for x in raw_data:
+        new_data = db.m_connections[1].find_one({'id':raw_data['id']})
+        if new_data:
+            count.update(['total_overlap',
+                          raw_data['codes']['code'],
+                          raw_data['codes']['rumor']])
+
+    print count
+
 if __name__ == "__main__":
     code_update(mongodb='new_boston',
                 sqldb='girl_running',
