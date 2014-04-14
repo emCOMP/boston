@@ -1,4 +1,5 @@
 from connection import dbConnection
+from collections import Counter
 
 def geo_code_import(mongodb,sqldb):
     db = dbConnection()
@@ -50,7 +51,7 @@ def place_code_import(mongodb,sqldb):
                           }
                       })
 
-def code_update(mongodb,sqldb,table,rumor):
+def code_update_mongo_to_sql(mongodb,sqldb,table,rumor):
     db = dbConnection()
     print mongodb,sqldb
     db.create_mongo_connections(mongo_options=[mongodb])
@@ -70,24 +71,25 @@ def code_update(mongodb,sqldb,table,rumor):
                                            'codes.rumor':rumor},
                                           {'$set':{'codes.$.code':value,}})
 
-def total_intersection(dbs=[]):
+def total_intersection(db1,db2):
     db = dbConnection()
-    db.create_mongo_connections(mongo_options=[dbs])
+    db.create_mongo_connections(mongo_options=[db1])
+    db.create_mongo_connections(mongo_options=[db2])
 
-    raw_data = db.m_connections[0].find()
-    count = collections.Counter()
+    raw_data = db.m_connections[db1].find()
+    count = Counter()
 
     for x in raw_data:
-        new_data = db.m_connections[1].find_one({'id':raw_data['id']})
+        new_data = db.m_connections[db2].find({'id':x['id']})
         if new_data:
             count.update(['total_overlap',
-                          raw_data['codes']['code'],
-                          raw_data['codes']['rumor']])
+                          #raw_data['codes']['code'],
+                          #raw_data['codes']['rumor']
+                    ])
 
-    print count
+    result = '%s in %s: %s' % (db1,db2,count)
+    print result
 
 if __name__ == "__main__":
-    code_update(mongodb='new_boston',
-                sqldb='girl_running',
-                table='tweets_girl_running',
-                rumor='girl running')
+    total_intersection(db1='new_boston',db2='gnip_boston')
+    total_intersection(db1='gnip_boston',db2='new_boston')
