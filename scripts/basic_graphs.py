@@ -81,14 +81,17 @@ def text_by_time():
                   end_time=dateEnd,
                   code=code_in)
 
-def rumor_over_time():
+def rumor_over_time(rumor=False):
     rumors = ['girl running','sunil','seals/craft','cell phone','proposal','jfk']
 
     print 'enter a valid file name:'
     user_in = raw_input('>> ')
 
-    for x in rumors:
-        _rumor_over_time(db_name='new_boston',rumor=x,gran=True,fname=user_in)
+    if rumor == True:
+        for x in rumors:
+            _rumor_over_time(db_name='new_boston',rumor=x,gran=True,fname=user_in)
+    else:
+        _total_tweets_over_time(db_name='gnip_boston',fname=user_in)
 
 # retrieves relevant data for all documents with GPS data
 def getAllGPS():
@@ -154,6 +157,32 @@ def _rumor_over_time(db_name,rumor,gran,fname):
                                                       correction,
                                                       other)
 
+                f.write(result)
+
+def _total_tweets_over_time(db_name,fname):
+    db = dbConnection()
+    db.create_mongo_connections(mongo_options=[db_name])
+
+    title = "%s.csv" % (fname)
+    fpath = utils.write_to_data(path=title)
+    f = open(fpath, 'w')
+    f.write('time,total tweets\n')
+
+    for i in range(15,23):      #15-23 (day)
+        for j in range(0,24):   #0-24 (hour)
+            for k in range(0,60,10):
+                dateStart = datetime(2013,04,i,j,k)
+                dateEnd = datetime(2013,04,i,j,(k+9),59)
+                #print "time: %s,%s" % (dateStart,dateEnd)
+
+                raw_data = db.m_connections[db_name].find({
+                    "created_ts":{
+                        "$gte":dateStart,
+                        "$lte":dateEnd
+                    }
+                }).count()
+
+                result = '"%s",%d\n' % (dateStart,raw_data)
                 f.write(result)
 
 def _text_by_time(db_name,rumor,fname,start_time,end_time,code):
@@ -222,7 +251,7 @@ def _getAllGPS(db_name, fname, rumor="all"):
 			f.write('decode error!\n')
 
 def main():
-    getAllGPS()
+    rumor_over_time(rumor=False)
 
 if __name__ == "__main__":
     main()
