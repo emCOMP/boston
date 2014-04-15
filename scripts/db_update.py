@@ -80,8 +80,8 @@ def total_intersection(db1,db2):
     count = Counter()
 
     for x in raw_data:
-        new_data = db.m_connections[db2].find({'id':x['id']})
-        if new_data:
+        new_data = db.m_connections[db2].find_one({'id':x['id']})
+        if new_data is not None:
             count.update(['total_overlap',
                           #raw_data['codes']['code'],
                           #raw_data['codes']['rumor']
