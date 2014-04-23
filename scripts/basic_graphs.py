@@ -204,11 +204,11 @@ def _text_by_time(db_name,rumor,fname,start_time,end_time,code):
     })
 
     for i,x in enumerate(raw_data):
-        result = '%s,"%s\n"' % (x['created_at'],x['text'])
+        result = '"%s","%s"\n' % (x['created_at'],x['text'])
         try:
-            f.write(result)
+            f.write(result.encode('utf-8'))
         except:
-            result = '%s,"%s\n"' % (x['created_at'],'unicode error')
+            result = '"%s","%s"\n' % (x['created_at'],'unicode error')
             f.write(result)
         print i,result
 
