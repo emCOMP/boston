@@ -51,6 +51,26 @@ def place_code_import(mongodb,sqldb):
                           }
                       })
 
+def author_code_import(mongodb,sqldb):
+    db = dbConnection()
+    db.create_mongo_connections(mongo_options=[mongodb])
+    db.create_sql_connections(sql_options=[sqldb])
+    written_ids = open('written_ids_proposal.txt','w')
+
+    #sql db query
+    query = "select id,author from tweets"
+    db.sql_connections['boston'].execute(query)
+    for x in db.sql_connections[sqldb]:
+        query = str(x[0])
+        value1 = str(x[1])
+        print query,value1
+        written_ids.write('"%s","%s"\n' % (query,value1))
+        db.m_connections[mongodb].update({'user.id':query},
+                      {'$set':{
+                          'user.screen_name':value1,
+                          }
+                      })
+
 def code_update_mongo_to_sql(mongodb,sqldb,table,rumor):
     db = dbConnection()
     print mongodb,sqldb
@@ -88,4 +108,4 @@ def total_intersection(db1,db2):
     print result
 
 if __name__ == "__main__":
-    total_intersection(db2='new_boston',db1='gnip_boston')
+    author_code_import(mongodb='new_boston',sqldb='boston')
