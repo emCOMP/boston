@@ -2,10 +2,10 @@ from pymongo import MongoClient
 from datetime import datetime
 #import counter,re
 
-#client = MongoClient()
-#db = client.boston
-#collection = db.tweets
-#tweets = db.tweets
+client = MongoClient()
+db = client.boston
+collection = db.tweets
+tweets = db.tweets
 
 def url_counter():
 	count = counter.Counter()

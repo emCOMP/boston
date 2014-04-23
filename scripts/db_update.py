@@ -77,19 +77,15 @@ def total_intersection(db1,db2):
     db.create_mongo_connections(mongo_options=[db2])
 
     raw_data = db.m_connections[db1].find()
-    count = Counter()
+    count = 0
 
     for x in raw_data:
-        new_data = db.m_connections[db2].find_one({'id':x['id']})
-        if new_data is not None:
-            count.update(['total_overlap',
-                          #raw_data['codes']['code'],
-                          #raw_data['codes']['rumor']
-                    ])
+        new_data = db.m_connections[db2].find_one({'id':str(x['id'])})
+        if new_data != None:
+            count += 1
 
     result = '%s in %s: %s' % (db1,db2,count)
     print result
 
 if __name__ == "__main__":
-    total_intersection(db1='new_boston',db2='gnip_boston')
-    total_intersection(db1='gnip_boston',db2='new_boston')
+    total_intersection(db2='new_boston',db1='gnip_boston')
