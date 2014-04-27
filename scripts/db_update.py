@@ -1,4 +1,5 @@
 from connection import dbConnection
+from collections import Counter
 
 def geo_code_import(mongodb,sqldb):
     db = dbConnection()
@@ -50,7 +51,27 @@ def place_code_import(mongodb,sqldb):
                           }
                       })
 
-def code_update(mongodb,sqldb,table,rumor):
+def author_code_import(mongodb,sqldb):
+    db = dbConnection()
+    db.create_mongo_connections(mongo_options=[mongodb])
+    db.create_sql_connections(sql_options=[sqldb])
+    written_ids = open('written_ids_proposal.txt','w')
+
+    #sql db query
+    query = "select id,author from tweets"
+    db.sql_connections['boston'].execute(query)
+    for x in db.sql_connections[sqldb]:
+        query = str(x[0])
+        value1 = str(x[1])
+        print query,value1
+        written_ids.write('"%s","%s"\n' % (query,value1))
+        db.m_connections[mongodb].update({'user.id':query},
+                      {'$set':{
+                          'user.screen_name':value1,
+                          }
+                      })
+
+def code_update_mongo_to_sql(mongodb,sqldb,table,rumor):
     db = dbConnection()
     print mongodb,sqldb
     db.create_mongo_connections(mongo_options=[mongodb])
@@ -70,8 +91,21 @@ def code_update(mongodb,sqldb,table,rumor):
                                            'codes.rumor':rumor},
                                           {'$set':{'codes.$.code':value,}})
 
+def total_intersection(db1,db2):
+    db = dbConnection()
+    db.create_mongo_connections(mongo_options=[db1])
+    db.create_mongo_connections(mongo_options=[db2])
+
+    raw_data = db.m_connections[db1].find()
+    count = 0
+
+    for x in raw_data:
+        new_data = db.m_connections[db2].find_one({'id':str(x['id'])})
+        if new_data != None:
+            count += 1
+
+    result = '%s in %s: %s' % (db1,db2,count)
+    print result
+
 if __name__ == "__main__":
-    code_update(mongodb='new_boston',
-                sqldb='girl_running',
-                table='tweets_girl_running',
-                rumor='girl running')
+    author_code_import(mongodb='new_boston',sqldb='boston')

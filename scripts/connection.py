@@ -15,6 +15,9 @@ class dbConnection(object):
         if 'new_boston' in mongo_options:
             self.m_connections['new_boston'] = MongoClient(host=DB.mongo['host']).new_boston.tweets
 
+        if 'gnip_boston' in mongo_options:
+            self.m_connections['gnip_boston'] = MongoClient(host=DB.mongo['host']).gnip_boston.tweets
+
         if 'iconference' in mongo_options:
             self.m_connections['iconference'] = MongoClient(host=DB.mongo['host']).iconference.tweets
 
