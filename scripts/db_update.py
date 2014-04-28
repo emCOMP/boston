@@ -108,4 +108,7 @@ def total_intersection(db1,db2):
     print result
 
 if __name__ == "__main__":
-    author_code_import(mongodb='new_boston',sqldb='boston')
+    code_update_mongo_to_sql(mongodb='new_boston',
+                             sqldb='craft_seals',
+                             table='tweets_seals',
+                             rumor='seals/craft')
