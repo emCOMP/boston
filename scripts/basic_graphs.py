@@ -320,9 +320,9 @@ def _text_by_time(db_name,rumor,fname,start_time,end_time,code):
     })
 
     for i,x in enumerate(raw_data):
-        result = '"%s","%s"\n' % (x['created_at'],
-                                  x['user']['screen_name'],
-                                  x['text'])
+        result = '"%s","%s","%s"\n' % (x['created_at'],
+                                       x['user']['screen_name'],
+                                       x['text'])
         try:
             f.write(result.encode('utf-8'))
         except:
