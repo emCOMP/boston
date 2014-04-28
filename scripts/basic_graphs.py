@@ -251,7 +251,7 @@ def _getAllGPS(db_name, fname, rumor="all"):
 			f.write('decode error!\n')
 
 def main():
-    rumor_over_time(rumor=False)
+    rumor_over_time(rumor=True)
 
 if __name__ == "__main__":
     main()
