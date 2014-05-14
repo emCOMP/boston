@@ -8,18 +8,14 @@ class dbConnection(object):
        self.m_connections = {}
        self.sql_connections = {}
 
-    def create_mongo_connections(self,mongo_options=[]):
-        if 'boston' in mongo_options:
-            self.m_connections['boston'] = MongoClient(host=DB.mongo['host']).boston.tweets
-
-        if 'new_boston' in mongo_options:
-            self.m_connections['new_boston'] = MongoClient(host=DB.mongo['host']).new_boston.tweets
-
-        if 'gnip_boston' in mongo_options:
-            self.m_connections['gnip_boston'] = MongoClient(host=DB.mongo['host']).gnip_boston.tweets
-
-        if 'iconference' in mongo_options:
-            self.m_connections['iconference'] = MongoClient(host=DB.mongo['host']).iconference.tweets
+    def create_mongo_connections(self,mongo_options=[],collections=None):
+        if collections is None:
+            for db_name in mongo_options:
+                self.m_connections[db_name] = MongoClient(host=DB.mongo['host'])[db_name].tweets
+        else:
+            for db_name in mongo_options:
+                for collection_name in collections[db_name]:
+                    self.m_connections[db_name] = MongoClient(host=DB.mongo['host'])[db_name][collection_name]
 
     def create_sql_connections(self,sql_options=[]):
         for db_name in sql_options:

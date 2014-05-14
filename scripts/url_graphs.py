@@ -7,10 +7,11 @@ def _url_by_domain_counter(db_name,rumor,top=100,write=True,url_type='domain'):
     db = dbConnection()
     db.create_mongo_connections(mongo_options=[db_name])
 
-    title = "%s_top_%s.csv" % (rumor.replace('/','_').replace(' ','_'),url_type)
-    fpath = utils.write_to_data(path=title)
-    f = open(fpath, 'w')
-    f.write('domain,total,misinfo hits,correction hits\n')
+    if write == True:
+        title = "%s_top_%s.csv" % (rumor.replace('/','_').replace(' ','_'),url_type)
+        fpath = utils.write_to_data(path=title)
+        f = open(fpath, 'w')
+        f.write('domain,total,misinfo hits,correction hits\n')
 
     count = Counter()
     raw_data = db.m_connections[db_name].find({
@@ -93,6 +94,28 @@ def _unique_authors_per_domain(db_name,rumor,domain):
 
     return count
 
+def _urls_per_domain(db_name,rumor,domain):
+    db = dbConnection()
+    db.create_mongo_connections(mongo_options=[db_name])
+
+    query = {
+        'entities.urls.domain':domain,
+        'codes.rumor':rumor
+    }
+    raw_data = db.m_connections[db_name].find(query)
+
+    count = Counter()
+    for x in raw_data:
+        for y in x['entities']['urls']:
+            if 'domain' in y:
+                if y['domain'] == domain:
+                    if 'long-url' in y:
+                        count.update([y['long-url']])
+                    elif 'expanded_url' in y:
+                        count.update([y['expanded_url']])
+
+    return count
+
 def url_by_domain_counter(url_type):
     rumors = ['girl running','sunil','seals/craft','cell phone','proposal','jfk']
     for x in rumors:
@@ -101,7 +124,8 @@ def url_by_domain_counter(url_type):
 
 # make sure to set BOTH date ranges properly
 def domain_over_time(top,url_type):
-    rumors = ['proposal']#['girl running','sunil','seals/craft','cell phone','proposal','jfk']
+    rumors = ['sunil']
+    #rumors = ['girl running','sunil','seals/craft','proposal']
     for x in rumors:
         top_domains = _url_by_domain_counter(db_name='new_boston',rumor=x,top=top,write=False,url_type=url_type)
         result = {}
@@ -128,7 +152,7 @@ def domain_over_time(top,url_type):
                     f.write('\n')
 
 def unique_authors_per_domain(top):
-    rumors = ['proposal']#['girl running','sunil','seals/craft','cell phone','proposal','jfk']
+    rumors = ['proposal','girl running','sunil','seals/craft']
     for x in rumors:
         top_domains = _url_by_domain_counter(db_name='new_boston',rumor=x,top=top,write=False,url_type='domain')
         result = {}
@@ -145,7 +169,27 @@ def unique_authors_per_domain(top):
             out = '"%s","%s","%s"\n' % (y,result[y]['RT'],result[y]['No RT'])
             f.write(out.encode('utf-8'))
 
+def urls_per_domain(top):
+    rumors = ['proposal','girl running','sunil','seals/craft']
+    for x in rumors:
+        top_domains = _url_by_domain_counter(db_name='new_boston',rumor=x,top=top,write=False,url_type='domain')
+        result = {}
+        for y in top_domains:
+            result[y] = _urls_per_domain(db_name='new_boston',rumor=x,domain=y)
+        print ' [x] finished query'
+
+        title = "%s_urls_per_domain.csv" % (x.replace('/','_').replace(' ','_'))
+        fpath = utils.write_to_data(path=title)
+        f = open(fpath, 'w')
+        f.write('"domain","unique_urls"\n')
+
+        for y in top_domains:
+            out = '"%s","%s"\n' % (y,len(result[y]))
+            f.write(out.encode('utf-8'))
+
+
 if __name__ == "__main__":
-    #domain_over_time(top=20,url_type='long-url')
-    #url_by_domain_counter(url_type='domain')
-    unique_authors_per_domain(top=10)
+    #urls_per_domain(top=10)
+    #domain_over_time(top=20,url_type='domain')
+    url_by_domain_counter(url_type='domain')
+    #unique_authors_per_domain(top=10)

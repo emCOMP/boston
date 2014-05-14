@@ -1,7 +1,7 @@
 from connection import dbConnection
 from collections import Counter
 from datetime import datetime
-import utils
+import utils,re
 
 def top_hashtags(db_name):
     db = dbConnection()
@@ -250,8 +250,54 @@ def _getAllGPS(db_name, fname, rumor="all"):
 		except:
 			f.write('decode error!\n')
 
+def percent_rt_per_rumor(db_name,rumor):
+    codes = ['misinfo','hedge','speculation','question','correction']
+    db = dbConnection()
+    db.create_mongo_connections(mongo_options=[db_name])
+    count = Counter()
+    s = ur'\u201c' + '@'
+    reg_tag = [re.compile('RT @', re.IGNORECASE),
+               re.compile('"@', re.IGNORECASE),
+               re.compile('via @', re.IGNORECASE),
+               re.compile(s, re.IGNORECASE)]
+    query = {'codes.rumor':rumor}
+    raw_data = db.m_connections[db_name].find(query)
+    for x in raw_data:
+        match = False
+        for z in x['codes']:
+            if z['rumor'] == rumor:
+                for y in reg_tag:
+                    if re.match(y,x['text']) != None:
+                        match = True
+                if match == True:
+                    count.update([z['code']])
+    totals = {}
+    for x in codes:
+        totals[x] = db.m_connections[db_name].find({'codes.rumor':rumor,
+                                                    'codes.code':x}).count()
+    result = {}
+    for x in codes:
+        result[x] = {'RT':count[x],
+                     'NO RT':totals[x]-count[x],
+                     'total':totals[x]}
+
+    title = "%s_percent_RT.csv" % (rumor.replace('/','_').replace(' ','_'))
+    fpath = utils.write_to_data(path=title)
+    f = open(fpath, 'w')
+    f.write('"time","total","RT","NO RT","percent"\n')
+    for x in result:
+        if x != 'rumor':
+            print result[x]['RT']
+            out = '"%s","%s","%s","%s","%s",\n' % (x,result[x]['total'],
+                                                   result[x]['RT'],result[x]['NO RT'],
+                                                   (float(result[x]['RT'])/float(result[x]['total'])))
+            f.write(out.encode('utf-8'))
+    #print result
+
 def main():
-    rumor_over_time(rumor=True)
+    rumor = ['girl running','seals/craft','proposal','sunil']
+    for x in rumor:
+        percent_rt_per_rumor(db_name='new_boston',rumor=x)
 
 if __name__ == "__main__":
     main()
