@@ -124,7 +124,7 @@ for k,v in total_counts.iteritems():
 		#print v['freq'], k, (freq > 2)
 
 		docfreq = float(v['df'])
-		idf = math.log( doc_cnt+1 / docfreq )
+		idf = math.log( doc_cnt / (1+docfreq) )
 		#print k, doc_cnt, docfreq, idf
 
 		tmp['word'] = k
