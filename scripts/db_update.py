@@ -136,48 +136,49 @@ def create_instersection_codes(db1,db2,gnip_first=True):
 
     if gnip_first is True:
         for x in raw_data:
+            print x['id']
             new_data = db.m_connections[db2].find_one({'id':str(x['id'])})
             if new_data != None:
-                db.m_connections[db1].update({x['id']},
+                db.m_connections[db1].update({'id':long(x['id'])},
                                              {'$set':
                                               {'intersect':0}
                                           })
-                db.m_connections[db2].update({str(x['id'])},
+                db.m_connections[db2].update({'id':str(x['id'])},
                                              {'$set':
                                               {'intersect':0}
                                           })
             else:
                 new_kw = ['watertown','mit']
                 if (set(new_kw) & set(x['track_kw']['mentions'])) or (set(new_kw) & set(x['track_kw']['hashtags'])) or (set(new_kw) & set(x['track_kw']['text'])):
-                        db.m_connections[db1].update({x['id']},
+                        db.m_connections[db1].update({'id':long(x['id'])},
                                              {'$set':
                                               {'intersect':3}
                                           })
                 else:
-                    db.m_connections[db1].update({x['id']},
-                                             {'$set':
-                                              {'intersect':2}
-                                          })
+                    db.m_connections[db1].update({'id':long(x['id'])},
+                                                 {'$set':
+                                                  {'intersect':2}
+                                              })
     else:
         for x in raw_data:
+            print x['id']
             new_data = db.m_connections[db2].find_one({'id':long(x['id'])})
             if new_data != None:
-                db.m_connections[db1].update({str(x['id'])},
+                db.m_connections[db1].update({'id':str(x['id'])},
                                              {'$set':
                                               {'intersect':0}
                                           })
-                db.m_connections[db2].update({x['id']},
+                db.m_connections[db2].update({'id':long(x['id'])},
                                              {'$set':
                                               {'intersect':0}
                                           })
             else:
-                db.m_connections[db1].update({str(x['id'])},
+                db.m_connections[db1].update({'id':str(x['id'])},
                                              {'$set':
                                               {'intersect':1}
                                           })
 
 if __name__ == "__main__":
-    code_update_mongo_to_sql(mongodb='new_boston',
-                             sqldb='craft_seals',
-                             table='tweets_seals',
-                             rumor='seals/craft')
+    #code_update_mongo_to_sql(mongodb='new_boston',sqldb='craft_seals',table='tweets_seals',rumor='seals/craft')
+    create_instersection_codes(db1='new_boston',db2='gnip_boston',gnip_first=False)
+    create_instersection_codes(db2='new_boston',db1='gnip_boston',gnip_first=True)

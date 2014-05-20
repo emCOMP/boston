@@ -126,9 +126,14 @@ def _rumor_over_time(db_name,rumor,gran,fname):
                     "codes.code":1
                 })
                 result = ''
-                for x in raw_data:
-                    count.update([x['codes'][0]['code']]
-)
+                if raw_data.count == 0:
+                    if gran:
+                        result = '"%s",0,0,0,0,0,0\n'
+                    else:
+                        result = '"%s",0,0,0\n'
+                else:
+                    for x in raw_data:
+                        count.update([x['codes'][0]['code']])
                     if gran:
                         misinfo = count['misinfo']
                         speculation = count['speculation']
@@ -183,7 +188,7 @@ def _total_tweets_over_time(db_name,fname):
 def rumor_over_time():
     print '\n*rumor_over_time*\n\nThis method outputs tweet features for all of the data in a selection\n'
     print 'enter a valid file name:'
-    user_in = raw_input('>> ')
+    user_in2 = raw_input('>> ')
 
     print 'would you like to data from coded data or all collected data? (0 for coded, 1 for all):'
     user_in = raw_input('>> ')
@@ -191,7 +196,7 @@ def rumor_over_time():
         for x in rumors:
             _rumor_over_time(db_name=default_database,rumor=x,gran=True,fname=user_in)
     elif int(user_in) is 1:
-        _total_tweets_over_time(db_name='gnip_boston',fname=user_in)
+        _total_tweets_over_time(db_name='gnip_boston',fname=user_in2)
     else:
         print "please enter a valid response"
     print "done!\nexiting..."
