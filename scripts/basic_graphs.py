@@ -127,8 +127,6 @@ def _rumor_over_time(db_name,rumor,gran,fname):
                         "$lte":dateEnd
                     },
                     "codes.rumor":rumor
-                },{
-                    "codes.code":1
                 })
                 result = ''
                 if raw_data.count == 0:
