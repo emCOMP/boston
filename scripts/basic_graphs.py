@@ -131,9 +131,14 @@ def _rumor_over_time(db_name,rumor,gran,fname):
                     "codes.code":1
                 })
                 result = ''
-                for x in raw_data:
-                    count.update([x['codes'][0]['code']]
-)
+                if raw_data.count == 0:
+                    if gran:
+                        result = '"%s",0,0,0,0,0,0\n'
+                    else:
+                        result = '"%s",0,0,0\n'
+                else:
+                    for x in raw_data:
+                        count.update([x['codes'][0]['code']])
                     if gran:
                         misinfo = count['misinfo']
                         speculation = count['speculation']
