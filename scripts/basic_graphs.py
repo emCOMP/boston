@@ -138,7 +138,9 @@ def _rumor_over_time(db_name,rumor,gran,fname):
                         result = '"%s",0,0,0\n'
                 else:
                     for x in raw_data:
-                        count.update([x['codes'][0]['code']])
+                        for y in x['codes']:
+                            if y['rumor'] == rumor:
+                                count.update([y['code']])
                     if gran:
                         misinfo = count['misinfo']
                         speculation = count['speculation']
@@ -301,8 +303,9 @@ def percent_rt_per_rumor(db_name,rumor):
 
 def main():
     rumor = ['girl running','seals/craft','proposal','sunil']
-    for x in rumor:
-        percent_rt_per_rumor(db_name='new_boston',rumor=x)
+    #for x in rumor:
+        #percent_rt_per_rumor(db_name='new_boston',rumor=x)
+    rumor_over_time(rumor=True)
 
 if __name__ == "__main__":
     main()
