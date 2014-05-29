@@ -109,9 +109,9 @@ def _rumor_over_time(db_name,rumor,gran,fname):
     fpath = utils.write_to_data(path=title)
     f = open(fpath, 'w')
     if gran:
-        f.write('time,misinfo,correction,speculation,hedge,question,unrelated/neutral/other\n')
+        f.write('time,misinfo,correction,speculation,hedge,question,unrelated/neutral/other,total\n')
     else:
-        f.write('time,misinfo,correction,unrelated/neutral/other\n')
+        f.write('time,misinfo,correction,unrelated/neutral/other,total\n')
 
     for i in range(15,23):      #15-23 (day)
         for j in range(0,24):   #0-24 (hour)
@@ -131,9 +131,9 @@ def _rumor_over_time(db_name,rumor,gran,fname):
                 result = ''
                 if raw_data.count == 0:
                     if gran:
-                        result = '"%s",0,0,0,0,0,0\n'
+                        result = '"%s",0,0,0,0,0,0,0\n'
                     else:
-                        result = '"%s",0,0,0\n'
+                        result = '"%s",0,0,0,0\n'
                 else:
                     for x in raw_data:
                         for y in x['codes']:
@@ -146,21 +146,25 @@ def _rumor_over_time(db_name,rumor,gran,fname):
                         correction = count['correction']
                         question = count['question']
                         other = count['unrelated'] + count['other/unclear/neutral'] + count['unclear'] + count[''] + count['discussion - justifying'] + count['discussion - question'] + count['other'] + count['discussion']
-                        result = '"%s",%d,%d,%d,%d,%d,%d\n' % (dateStart,
+                        total = misinfo + speculation + hedge + correction + question + other
+                        result = '"%s",%d,%d,%d,%d,%d,%d,%d\n' % (dateStart,
                                                                misinfo,
                                                                correction,
                                                                speculation,
                                                                hedge,
                                                                question,
-                                                               other)
+                                                               other,
+                                                               total)
                     else:
                         misinfo = count['misinfo'] + count['speculation'] + count['hedge']
                         correction = count['correction'] + count['question']
                         other = count['unrelated'] + count['other/unclear/neutral'] + count['unclear'] + count[''] + count['discussion - justifying'] + count['discussion - question'] + count['other'] + count['discussion']
-                        result = '"%s",%d,%d,%d\n' % (dateStart,
+                        total = misinfo + correction + other
+                        result = '"%s",%d,%d,%d,%d\n' % (dateStart,
                                                       misinfo,
                                                       correction,
-                                                      other)
+                                                      other,
+                                                      total)
 
                 f.write(result)
 
@@ -299,10 +303,46 @@ def percent_rt_per_rumor(db_name,rumor):
             f.write(out.encode('utf-8'))
     #print result
 
+def percent_url_per_rumor(db_name,rumor):
+    codes = ['misinfo','hedge','speculation','question','correction']
+    db = dbConnection()
+    db.create_mongo_connections(mongo_options=[db_name])
+    count = Counter()
+    query = {'codes.rumor':rumor,
+             'counts.urls':{'$gte':1}}
+    raw_data = db.m_connections[db_name].find(query)
+    for x in raw_data:
+        match = False
+        for z in x['codes']:
+            if z['rumor'] == rumor:
+                    count.update([z['code']])
+    totals = {}
+    for x in codes:
+        totals[x] = db.m_connections[db_name].find({'codes.rumor':rumor,
+                                                    'codes.code':x}).count()
+    result = {}
+    for x in codes:
+        result[x] = {'URL':count[x],
+                     'NO URL':totals[x]-count[x],
+                     'total':totals[x]}
+
+    title = "%s_percent_URL.csv" % (rumor.replace('/','_').replace(' ','_'))
+    fpath = utils.write_to_data(path=title)
+    f = open(fpath, 'w')
+    f.write('"time","total","URL","NO URL","percent"\n')
+    for x in result:
+        if x != 'rumor':
+            print result[x]['URL']
+            out = '"%s","%s","%s","%s","%s",\n' % (x,result[x]['total'],
+                                                   result[x]['URL'],result[x]['NO URL'],
+                                                   (float(result[x]['URL'])/float(result[x]['total'])))
+            f.write(out.encode('utf-8'))
+
+
 def main():
     rumor = ['girl running','seals/craft','proposal','sunil']
     #for x in rumor:
-        #percent_rt_per_rumor(db_name='new_boston',rumor=x)
+    #    percent_url_per_rumor(db_name='new_boston',rumor=x)
     rumor_over_time(rumor=True)
 
 if __name__ == "__main__":

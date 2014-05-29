@@ -1,5 +1,6 @@
 from connection import dbConnection
 from collections import Counter
+from datetime import datetime,timedelta
 
 def geo_code_import(mongodb,sqldb):
     db = dbConnection()
@@ -87,5 +88,36 @@ def total_intersection(db1,db2):
     result = '%s in %s: %s' % (db1,db2,count)
     print result
 
+def time_update(interval,db_name):
+    db = dbConnection()
+    db.create_mongo_connections(mongo_options=[db_name])
+
+    raw_data = db.m_connections[db_name].find()
+
+    for x in raw_data:
+        tweet_id = x['id']
+        new_time = x['created_ts'] + timedelta(hours=interval)
+        db.m_connections[db_name].update({'id':tweet_id},
+                                         {'$set':{'created_ts':new_time}})
+
+def check_time(interval,db1,db2):
+    db = dbConnection()
+    db.create_mongo_connections(mongo_options=[db1,db2])
+
+    update_tweet = db.m_connections[db1].find()
+
+    for x in update_tweet:
+        tweet_id = x['id']
+        check_tweet = db.m_connections[db2].find_one({'id':tweet_id})
+        new_time = check_tweet['created_ts'] + timedelta(hours=interval)
+        if new_time != x['created_ts']:
+            print '%s,update' % (tweet_id)
+            db.m_connections[db1].update({'id':tweet_id},
+                                         {'$set':{'created_ts':new_time}})
+        else:
+            print '%s,pass' % (tweet_id)
+
 if __name__ == "__main__":
-    total_intersection(db2='new_boston',db1='gnip_boston')
+    #total_intersection(db2='new_boston',db1='gnip_boston')
+    #time_update(interval=-4,db_name='new_boston')
+    check_time(interval=-4,db1='new_boston',db2='boston')
