@@ -325,16 +325,18 @@ def _text_by_time(db_name,rumor,fname,start_time,end_time,code):
     })
 
     for i,x in enumerate(raw_data):
-        result = '"%s","%s","%s"\n' % (x['created_at'],
-                                       x['user']['screen_name'],
-                                       x['text'])
-        try:
-            f.write(result.encode('utf-8'))
-        except:
-            result = '"%s","%s"\n' % (x['created_at'],
-                                      'unicode error')
-            f.write(result)
-        print i,result
+        for y in x['codes']:
+            if y['rumor'] == rumor:
+                result = '"%s","%s","%s"\n' % (x['created_at'],
+                                               x['user']['screen_name'],
+                                               x['text'])
+                try:
+                    f.write(result.encode('utf-8'))
+                except:
+                    result = '"%s","%s"\n' % (x['created_at'],
+                                              'unicode error')
+                f.write(result)
+                print i,result
 
 def text_by_time():
     print 'enter a valid file name:'
