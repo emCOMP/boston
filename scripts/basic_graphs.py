@@ -335,7 +335,7 @@ def _text_by_time(db_name,rumor,fname,start_time,end_time,code):
                 except:
                     result = '"%s","%s"\n' % (x['created_at'],
                                               'unicode error')
-                f.write(result)
+                    f.write(result)
                 print i,result
 
 def text_by_time():
